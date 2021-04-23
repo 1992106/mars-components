@@ -52,7 +52,7 @@
     "*.{js,jsx,vue}": [
       "prettier --write",
       "stylelint --syntax sass --fix",
-      "eslint --fix",
+      "vue-cli-service lint",
       "git add"
     ]
   }

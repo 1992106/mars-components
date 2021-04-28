@@ -2,12 +2,36 @@
   "name": "mars-components",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/mars-components.ssr.js",
+  "browser": "dist/mars-components.esm.js",
+  "module": "dist/mars-components.esm.js",
+  "unpkg": "dist/mars-components.min.js",
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lint:es": "eslint src --ext .js,.vue --fix",
-    "lint:style": "stylelint src/**/*.vue --syntax sass --fix"
+    "lint:style": "stylelint src/**/*.vue --syntax sass --fix",
+    "build:all": "cross-env NODE_ENV=production rollup --config rollup.config.js",
+    "build:ssr": "cross-env NODE_ENV=production rollup --config rollup.config.js --format cjs",
+    "build:es": "cross-env NODE_ENV=production rollup --config rollup.config.js --format es",
+    "build:unpkg": "cross-env NODE_ENV=production rollup --config rollup.config.js --format iife"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:1992106/mars-components.git"
+  },
+  "homepage": "https://github.com/1992106/mars-components",
+  "keywords": [
+    "vue",
+    "mars components"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/1992106/mars-components/issues"
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -22,8 +46,15 @@
     "xe-utils": "^3.1.15"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
     "@commitlint/cli": "^12.1.1",
     "@commitlint/config-conventional": "^12.1.1",
+    "@rollup/plugin-alias": "^3.1.1",
+    "@rollup/plugin-babel": "^5.2.2",
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-replace": "^2.3.4",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
@@ -31,12 +62,18 @@
     "@vue/cli-service": "~4.5.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.24.0",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^7.9.0",
     "husky": "^6.0.0",
     "lint-staged": "^10.5.4",
+    "minimist": "^1.2.5",
     "prettier": "^2.2.1",
+    "rollup": "^2.36.1",
+    "rollup-plugin-scss": "^2.6.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-vue": "^5.1.9",
     "stylelint": "^13.12.0",
     "stylelint-config-prettier": "^8.0.2",
     "stylelint-config-recess-order": "^2.4.0",

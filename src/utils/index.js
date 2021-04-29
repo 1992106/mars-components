@@ -44,19 +44,20 @@ export const isEmpty = (value) => {
  * @returns {{}}
  */
 export function polyfill(target = {}, source = {}) {
-  const obj = {}
-  Object.keys(target).forEach((key) => {
+  const mergeObj = { ...target, ...source }
+  const newObj = {}
+  Object.keys(mergeObj).forEach((key) => {
     if (getType(target[key]) === 'object') {
       if (!isEmpty(source[key])) {
-        obj[key] = polyfill(target[key], source[key])
+        newObj[key] = polyfill(target[key], source[key])
       } else {
-        obj[key] = target[key]
+        newObj[key] = target[key]
       }
     } else {
-      obj[key] = isEmpty(source[key]) ? target[key] : source[key]
+      newObj[key] = isEmpty(source[key]) ? target[key] : source[key]
     }
   })
-  return obj
+  return newObj
 }
 
 /**

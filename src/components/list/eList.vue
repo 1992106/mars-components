@@ -2,9 +2,9 @@
   <div class="e-list">
     <el-table
       ref="eList"
-      v-loading="data.loading"
+      v-loading="getData.loading"
       border
-      :data="data.list"
+      :data="getData.list"
       :height="tableHeight"
       :row-key="getRowKey"
       :highlight-current-row="true"
@@ -16,7 +16,13 @@
       @current-change="handleCurrentChange"
     >
       <template v-for="(column, index) in getMergeColumns">
-        <el-table-column v-if="column.visible" :key="column + index" v-bind="column" show-overflow-tooltip>
+        <el-table-column
+          v-if="column.visible"
+          :key="column + index"
+          v-bind="column"
+          :formatter="getFormatter(column.formatter)"
+          show-overflow-tooltip
+        >
           <!--表头-->
           <template v-if="column.header">
             <template slot="header" slot-scope="scope">
@@ -52,8 +58,7 @@
       :page-sizes="[20, 30, 50, 100]"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="pagination.total"
-      style="text-align: right"
+      :total="data.total"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
     ></el-pagination>
@@ -70,10 +75,10 @@ export default {
     // 自定义列
     columns: { type: Array, default: () => [] },
     // 表格数据
-    data: { type: Object, default: () => ({ list: [], loading: false }) },
+    data: Object,
     // 页码
     showPagination: { type: Boolean, default: true },
-    pagination: { type: Object, default: () => ({ limit: 20, page: 1, total: 0 }) },
+    pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
@@ -83,26 +88,24 @@ export default {
   },
   data() {
     return {
+      defaultData: { list: [], total: 0, loading: false },
       defaultTypeColumn: {
-        type: Object,
-        default: () => ({
-          type: 'selection', //（勾选selection、展开expand、索引index）
-          visible: false,
-          width: 30,
-          fixed: false,
-          'reserve-selection': true,
-          selectable: Function.prototype
-        })
+        type: 'selection', //（勾选selection、展开expand、索引index）
+        visible: false,
+        width: 30,
+        fixed: false,
+        'reserve-selection': true,
+        selectable: Function.prototype
       },
-      defaultOptsColumn: {
-        type: Object,
-        default: () => ({ label: '操作', type: 'opts', visible: true, width: 60, fixed: false })
-      },
+      defaultOptsColumn: { label: '操作', type: 'opts', visible: true, width: 60, fixed: false },
       tableHeight: 300,
       filters: {}
     }
   },
   computed: {
+    getData({ defaultData, data }) {
+      return polyfill(defaultData, data)
+    },
     getMergeColumns({ columns, defaultTypeColumn, defaultOptsColumn }) {
       let mergeColumns = []
       columns.forEach((column) => {
@@ -145,8 +148,14 @@ export default {
       const clientHeight = document.body.clientHeight - this.offsetHeight
       this.tableHeight = clientHeight < 300 ? 300 : clientHeight
     },
-    getRef() {
-      return this.$refs['eList']
+    getFormatter(params) {
+      if (Array.isArray(params)) {
+        let [fn, ...rest] = params
+        return (row, column, cellValue) => fn({ row, column, cellValue }, ...rest)
+      } else if (params instanceof Function) {
+        return (row, column, cellValue) => params({ row, column, cellValue })
+      }
+      return null
     },
     // 操作项
     handleCommand(index, row, command) {
@@ -163,7 +172,7 @@ export default {
         page
       }
       this.$emit('update:pagination', pagination)
-      this.$emit('search', pagination)
+      this.$emit('search')
     },
     // 页数
     handleSizeChange(limit) {
@@ -173,7 +182,7 @@ export default {
         page: 1
       }
       this.$emit('update:pagination', pagination)
-      this.$emit('search', pagination)
+      this.$emit('search')
     },
     // 行的唯一key
     getRowKey(row) {
@@ -200,7 +209,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 .e-list {
-  .el-pagination {
+  ::v-deep .el-pagination {
     text-align: right;
     margin-top: 5px;
 

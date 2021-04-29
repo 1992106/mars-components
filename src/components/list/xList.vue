@@ -12,8 +12,8 @@
       :scroll-y="getScrollY"
       :height="tableHeight"
       :columns="columns"
-      :data="data.list"
-      :loading="data.loading"
+      :data="getData.list"
+      :loading="getData.loading"
       :merge-cells="mergeCells"
       :edit-config="getEditConfig"
       :edit-rules="editRules"
@@ -106,13 +106,12 @@
       </template>
     </vxe-grid>
     <el-pagination
-      v-if="pagination.limit"
+      v-if="showPagination"
       :page-size="pagination.limit"
       :page-sizes="[20, 30, 50, 100]"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="pagination.total"
-      style="text-align: right"
+      :total="getData.total"
       @current-change="handlePageChange"
       @size-change="handlePageSizeChange"
     ></el-pagination>
@@ -128,10 +127,10 @@ export default {
     // 自定义列
     columns: { type: Array, default: () => [] },
     // 表格数据
-    data: { type: Object, default: () => ({ list: [], loading: false }) },
+    data: Object,
     // 页码
     showPagination: { type: Boolean, default: () => true },
-    pagination: { type: Object, default: () => ({ limit: 20, page: 1, total: 0 }) },
+    pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
@@ -148,22 +147,26 @@ export default {
     // tooltip 配置项
     tooltipConfig: Object,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 210 },
+    offsetHeight: { type: Number, default: 230 },
     // 本地Storage名称（拖拽列时需要本地储存）
     storageName: String
   },
   data() {
     return {
-      defaultScrollX: { type: Object, default: () => ({ enabled: false }) },
-      defaultScrollY: { type: Object, default: () => ({ enabled: false }) },
+      defaultData: { list: [], total: 0, loading: false },
+      defaultScrollX: { enabled: false },
+      defaultScrollY: { enabled: false },
       defaultEditConfig: { trigger: 'click', mode: 'cell', icon: 'el-icon-edit' },
-      defaultCheckboxConfig: { type: Object, default: () => ({ highlight: true, checkMethod: () => true }) },
-      defaultTooltipConfig: { type: Object, default: () => ({ showAll: true }) },
+      defaultCheckboxConfig: { highlight: true, checkMethod: () => true },
+      defaultTooltipConfig: { showAll: true },
       tableHeight: 300,
       filters: {}
     }
   },
   computed: {
+    getData({ defaultData, data }) {
+      return polyfill(defaultData, data)
+    },
     getScrollX({ defaultScrollX, scrollX }) {
       return polyfill(defaultScrollX, scrollX)
     },
@@ -199,9 +202,6 @@ export default {
       const clientHeight = document.body.clientHeight - this.offsetHeight
       this.tableHeight = clientHeight < 300 ? 300 : clientHeight
     },
-    getRef() {
-      return this.$refs['xList']
-    },
     // 操作项
     handleCommand(index, row, command) {
       return {
@@ -217,7 +217,7 @@ export default {
         page
       }
       this.$emit('update:pagination', pagination)
-      this.$emit('search', pagination)
+      this.$emit('search')
     },
     // 页数
     handlePageSizeChange(limit) {
@@ -227,7 +227,7 @@ export default {
         limit
       }
       this.$emit('update:pagination', pagination)
-      this.$emit('search', pagination)
+      this.$emit('search')
     },
     // 编辑
     handleEditClosed({ row, rowIndex, $rowIndex, column, columnIndex, $columnIndex }) {
@@ -316,6 +316,10 @@ export default {
     .vxe-header--column .vxe-cell--edit-icon {
       //color: $font-orange;
     }
+  }
+  .el-pagination {
+    text-align: right;
+    margin: 8px;
   }
 }
 </style>

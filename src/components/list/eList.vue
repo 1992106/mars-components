@@ -66,7 +66,7 @@
       :page-sizes="[20, 30, 50, 100]"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="getData.total"
+      :total="getData.total || getData.count"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
     ></el-pagination>
@@ -92,7 +92,7 @@ export default {
     // 合并单元格
     spanMethod: Function,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 220 }
+    offsetHeight: { type: Number, default: 260 }
   },
   data() {
     return {

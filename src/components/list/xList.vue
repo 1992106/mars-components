@@ -111,7 +111,7 @@
       :page-sizes="[20, 30, 50, 100]"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="getData.total"
+      :total="getData.total || getData.count"
       @current-change="handlePageChange"
       @size-change="handlePageSizeChange"
     ></el-pagination>
@@ -147,7 +147,7 @@ export default {
     // tooltip 配置项
     tooltipConfig: Object,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 220 },
+    offsetHeight: { type: Number, default: 260 },
     // 本地Storage名称（拖拽列时需要本地储存）
     storageName: String
   },

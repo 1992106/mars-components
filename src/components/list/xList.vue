@@ -26,7 +26,7 @@
       @resizable-change="handleResizableChange"
     >
       <template #opts="scope">
-        <slot name="opts" :scope="{ ...scope }" :command="handleCommand"></slot>
+        <slot name="opts" v-bind="scope" :command="handleCommand"></slot>
       </template>
 
       <!--二次搜索-->
@@ -147,7 +147,7 @@ export default {
     // tooltip 配置项
     tooltipConfig: Object,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 230 },
+    offsetHeight: { type: Number, default: 220 },
     // 本地Storage名称（拖拽列时需要本地储存）
     storageName: String
   },
@@ -199,8 +199,10 @@ export default {
   methods: {
     // 监听视窗大小改变
     onResize() {
-      const clientHeight = document.body.clientHeight - this.offsetHeight
-      this.tableHeight = clientHeight < 300 ? 300 : clientHeight
+      this.$nextTick(() => {
+        const clientHeight = document.body.clientHeight - this.offsetHeight
+        this.tableHeight = clientHeight < 300 ? 300 : clientHeight
+      })
     },
     // 操作项
     handleCommand(index, row, command) {

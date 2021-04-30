@@ -7,8 +7,8 @@
       :data="getData.list"
       :height="tableHeight"
       :row-key="getRowKey"
-      :highlight-current-row="true"
       :span-method="spanMethod"
+      highlight-current-row
       empty-text="暂无数据"
       @selection-change="handleSelectionChange"
       @select-all="handleSelectAll"
@@ -16,40 +16,48 @@
       @current-change="handleCurrentChange"
     >
       <template v-for="(column, index) in getMergeColumns">
-        <el-table-column
-          v-if="column.visible"
-          :key="column + index"
-          v-bind="column"
-          :formatter="getFormatter(column.formatter)"
-          show-overflow-tooltip
-        >
-          <!--表头-->
-          <template v-if="column.header">
-            <template slot="header" slot-scope="scope">
-              <slot :name="column.header.name" :scope="{ ...scope }"></slot>
+        <template v-if="column.visible">
+          <el-table-column
+            v-if="column.formatter"
+            :key="column + index"
+            v-bind="column"
+            :formatter="getFormatter(column.formatter)"
+            show-overflow-tooltip
+          >
+            <!--表头-->
+            <template v-if="column.header">
+              <template slot="header" slot-scope="scope">
+                <slot :name="column.header" :scope="{ ...scope }"></slot>
+              </template>
             </template>
-          </template>
-          <!--内容-->
-          <template v-if="!column.formatter">
+          </el-table-column>
+          <el-table-column v-else :key="column + index" v-bind="column" show-overflow-tooltip>
+            <!--表头-->
+            <template v-if="column.header">
+              <template slot="header" slot-scope="scope">
+                <slot :name="column.header" :scope="{ ...scope }"></slot>
+              </template>
+            </template>
+            <!--内容-->
             <template slot-scope="scope">
-              <slot :name="column.prop" :scope="{ ...scope }" v-bind="getCommand(column.type)">
-                <template v-if="column.type === 'date'">
-                  {{ getColumn(scope.row, column.prop) | formatDate('YYYY-MM-DD') }}
-                </template>
-                <template v-if="column.type === 'image'">
+              <slot :name="column.prop" v-bind="scope" :command="getCommand(column)">
+                <!--<template v-if="column.type === 'image'">
                   <el-image
                     lazy
-                    :src="getColumn(scope.row, column.prop)"
-                    :preview-src-list="[getColumn(scope.row, column.prop)]"
+                    :src="getColumn(scope.row, column)"
+                    :preview-src-list="[getColumn(scope.row, column)]"
                   ></el-image>
+                </template>-->
+                <template v-if="column.type === 'date'">
+                  {{ getColumn(scope.row, column) | formatDate('YYYY-MM-DD') }}
                 </template>
                 <template v-else>
-                  {{ getColumn(scope.row, column.prop) | isNull }}
+                  {{ getColumn(scope.row, column) | isNull }}
                 </template>
               </slot>
             </template>
-          </template>
-        </el-table-column>
+          </el-table-column>
+        </template>
       </template>
     </el-table>
     <el-pagination
@@ -58,7 +66,7 @@
       :page-sizes="[20, 30, 50, 100]"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="data.total"
+      :total="getData.total"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
     ></el-pagination>
@@ -84,7 +92,7 @@ export default {
     // 合并单元格
     spanMethod: Function,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 210 }
+    offsetHeight: { type: Number, default: 220 }
   },
   data() {
     return {
@@ -111,20 +119,22 @@ export default {
       columns.forEach((column) => {
         let newColumn = column
         newColumn.visible = true
-        if (['selection', 'expand', 'index'].includes(column.type)) newColumn = polyfill(defaultTypeColumn, column)
-        if (column.type === 'opts') newColumn = polyfill(defaultOptsColumn, column)
-        newColumn.props = newColumn.props || column.type
+        if (['selection', 'expand', 'index'].includes(column?.type)) newColumn = polyfill(defaultTypeColumn, column)
+        if (column?.type === 'opts') newColumn = polyfill(defaultOptsColumn, column)
+        newColumn.prop = newColumn?.prop || column?.type
         mergeColumns.push(newColumn)
       })
       return mergeColumns
     },
     getCommand() {
-      return (type) => (type && type === 'opts' ? { command: this.handleCommand } : {})
+      return (column) => {
+        return column?.type === 'opts' ? this.handleCommand : null
+      }
     },
     getColumn() {
-      return (row, str) => {
-        if (!str) return ''
-        const arr = (str || '').split('.')
+      return (row, column) => {
+        if (!column.prop) return ''
+        const arr = (column.prop || '').split('.')
         let item,
           obj = row
         while ((item = arr.shift()) && obj) {
@@ -145,8 +155,10 @@ export default {
   methods: {
     // 监听视窗大小改变
     onResize() {
-      const clientHeight = document.body.clientHeight - this.offsetHeight
-      this.tableHeight = clientHeight < 300 ? 300 : clientHeight
+      this.$nextTick(() => {
+        const clientHeight = document.body.clientHeight - this.offsetHeight
+        this.tableHeight = clientHeight < 300 ? 300 : clientHeight
+      })
     },
     getFormatter(params) {
       if (Array.isArray(params)) {
@@ -209,16 +221,9 @@ export default {
 </script>
 <style lang="scss" scoped>
 .e-list {
-  ::v-deep .el-pagination {
+  .el-pagination {
     text-align: right;
     margin-top: 5px;
-
-    .el-input__inner {
-      height: 24px;
-      line-height: 24px;
-      font-size: 11px;
-      border-radius: 5px;
-    }
   }
 }
 </style>

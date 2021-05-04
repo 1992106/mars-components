@@ -117,7 +117,7 @@ if (!argv.format || argv.format === 'cjs') {
     external,
     output: {
       compact: true,
-      file: 'dist/mars-components.ssr.js',
+      file: 'dist/mars-components.cjs.js',
       format: 'cjs',
       name: 'MarsComponents',
       exports: 'auto',

@@ -16,13 +16,7 @@
       @current-change="handleCurrentChange"
     >
       <template v-for="(column, index) in getMergeColumns">
-        <el-table-column
-          v-if="column.formatter"
-          :key="column + index"
-          v-bind="column"
-          :formatter="getFormatter(column.formatter)"
-          show-overflow-tooltip
-        >
+        <el-table-column v-if="column.formatter" :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
           <!--表头-->
           <template v-if="column.header">
             <template slot="header" slot-scope="scope">

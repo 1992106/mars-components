@@ -1,7 +1,7 @@
 {
   "name": "mars-components",
   "version": "1.0.0",
-  "main": "dist/mars-components.ssr.js",
+  "main": "dist/mars-components.cjs.js",
   "browser": "dist/mars-components.esm.js",
   "module": "dist/mars-components.esm.js",
   "unpkg": "dist/mars-components.min.js",
@@ -15,7 +15,7 @@
     "lint:es": "eslint src --ext .js,.vue --fix",
     "lint:style": "stylelint src/**/*.vue --syntax sass --fix",
     "build:all": "cross-env NODE_ENV=production rollup --config rollup.config.js",
-    "build:ssr": "cross-env NODE_ENV=production rollup --config rollup.config.js --format cjs",
+    "build:cjs": "cross-env NODE_ENV=production rollup --config rollup.config.js --format cjs",
     "build:es": "cross-env NODE_ENV=production rollup --config rollup.config.js --format es",
     "build:unpkg": "cross-env NODE_ENV=production rollup --config rollup.config.js --format iife"
   },

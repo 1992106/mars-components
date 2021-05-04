@@ -1,13 +1,6 @@
 <template>
   <div class="mars-search-bar">
-    <el-form
-      ref="searchBar"
-      :inline="true"
-      :model="form"
-      size="mini"
-      @submit.native.prevent
-      @keyup.enter.native="onSubmit"
-    >
+    <el-form ref="searchBar" :inline="true" :model="form" size="mini" @submit.native.prevent @keyup.enter.native="onSubmit">
       <template v-for="field in fields">
         <el-form-item :label="field.label" :prop="field.prop" :key="field.prop">
           <template v-if="field.type === 'select'">
@@ -22,14 +15,10 @@
             </el-select>
           </template>
           <template v-else-if="field.type === 'autocomplete'">
-            <el-autocomplete
-              v-model="form[field.prop]"
-              :fetch-suggestions="field.fetchSuggestions"
-              :placeholder="field.placeholder || `请输入${field.label}`"
-            ></el-autocomplete>
+            <el-autocomplete v-model="form[field.prop]" :fetch-suggestions="field.fetchSuggestions" :placeholder="field.placeholder || `请输入${field.label}`"></el-autocomplete>
           </template>
           <template v-else>
-            <el-input v-model="form[field.prop]" :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
+            <el-input v-model="form[field.prop]" :type="field.type || 'text'" :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
           </template>
         </el-form-item>
       </template>

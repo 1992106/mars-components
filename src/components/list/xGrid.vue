@@ -41,7 +41,14 @@
           }
         }"
       >
-        <el-input v-model="filters[filter.field]" clearable size="mini" @change="handleFilter($event, filter.field)" @clear="handleClear(filter.field)"></el-input>
+        <el-input
+          v-model="filters[filter.field]"
+          clearable
+          size="mini"
+          :type="filter.type || 'text'"
+          @change="handleFilter($event, filter.field)"
+          @clear="handleClear(filter.field)"
+        ></el-input>
       </template>
       <template
         #QSelect="{
@@ -334,7 +341,7 @@ export default {
     // 拖拽列
     handleResizableChange({ column }) {
       const xGrid = this.$refs.xGrid
-      if (xGrid) {
+      if (this.storageName && xGrid) {
         column.width = column.renderWidth
         column.resizeWidth = 0 // 拖拽后要清理  这个字段优先级高于renderWidth
         xGrid.refreshColumn()

@@ -1,110 +1,63 @@
 <template>
-  <div class="x-list">
-    <vxe-grid
-      ref="xGrid"
-      auto-resize
+  <div class="mars-list">
+    <el-table
+      ref="xList"
+      v-loading="getData.loading"
       border
-      show-overflow
-      keep-source
-      resizable
-      stripe
-      :scroll-x="getScrollX"
-      :scroll-y="getScrollY"
-      :height="tableHeight"
-      :columns="columns"
       :data="getData.list"
-      :loading="getData.loading"
-      :merge-cells="mergeCells"
-      :edit-config="getEditConfig"
-      :edit-rules="editRules"
-      :checkbox-config="getCheckboxConfig"
-      :tooltip-config="getTooltipConfig"
-      @edit-closed="handleEditClosed"
-      @checkbox-change="handleCheckboxChange"
-      @checkbox-all="handleCheckboxAll"
+      :height="tableHeight"
+      :row-key="getRowKey"
+      :span-method="spanMethod"
+      highlight-current-row
+      empty-text="暂无数据"
+      @selection-change="handleSelectionChange"
+      @select-all="handleSelectAll"
       @cell-click="handleCellClick"
-      @resizable-change="handleResizableChange"
+      @current-change="handleCurrentChange"
     >
-      <template #opts="scope">
-        <slot name="opts" v-bind="scope" :command="handleCommand"></slot>
-      </template>
-
-      <!--二次搜索-->
-      <template #QIcon="{ column: { title, editRender, children } }">
-        <i v-if="isQICon(editRender, children)" class="vxe-cell--edit-icon el-icon-edit"></i>
-        <span class="vxe-cell--title">{{ title }}</span>
-      </template>
-      <template
-        #QInput="{
-          column: {
-            params: { filter }
-          }
-        }"
-      >
-        <el-input v-model="filters[filter.field]" clearable @change="handleFilter($event, filter.field)"></el-input>
-      </template>
-      <template
-        #QSelect="{
-          column: {
-            params: { filter }
-          }
-        }"
-      >
-        <el-select
-          v-model="filters[filter.field]"
-          filterable
-          clearable
-          multiple
-          placeholder="请选择"
-          @change="handleFilter($event, filter.field)"
+      <template v-for="(column, index) in getMergeColumns">
+        <el-table-column
+          v-if="column.formatter"
+          :key="column + index"
+          v-bind="column"
+          :formatter="getFormatter(column.formatter)"
+          show-overflow-tooltip
         >
-          <el-option
-            v-for="item in filter.options"
-            :key="item.value"
-            :value="item.value"
-            :label="item.label"
-          ></el-option>
-        </el-select>
+          <!--表头-->
+          <template v-if="column.header">
+            <template slot="header" slot-scope="scope">
+              <slot :name="column.header" :scope="{ ...scope }"></slot>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column v-else :key="column + index" v-bind="column" show-overflow-tooltip>
+          <!--表头-->
+          <template v-if="column.header">
+            <template slot="header" slot-scope="scope">
+              <slot :name="column.header" :scope="{ ...scope }"></slot>
+            </template>
+          </template>
+          <!--内容-->
+          <template slot-scope="scope">
+            <slot :name="column.prop" v-bind="scope" :command="getCommand(column)">
+              <!--<template v-if="column.type === 'image'">
+                  <el-image
+                    lazy
+                    :src="getColumn(scope.row, column)"
+                    :preview-src-list="[getColumn(scope.row, column)]"
+                  ></el-image>
+                </template>-->
+              <template v-if="column.type === 'date'">
+                {{ getColumn(scope.row, column) | formatDate('YYYY-MM-DD') }}
+              </template>
+              <template v-else>
+                {{ getColumn(scope.row, column) | isNull }}
+              </template>
+            </slot>
+          </template>
+        </el-table-column>
       </template>
-      <template
-        #QDaterange="{
-          column: {
-            params: { filter }
-          }
-        }"
-      >
-        <el-date-picker
-          v-model="filters[filter.field]"
-          style="width: 100%"
-          type="daterange"
-          align="right"
-          :picker-options="filter.pickerOptions"
-          unlink-panels
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="handleFilter($event, filter.field)"
-        ></el-date-picker>
-      </template>
-      <template
-        #QCascader="{
-          column: {
-            params: { filter }
-          }
-        }"
-      >
-        <el-cascader
-          v-model="filters[filter.field]"
-          filterable
-          clearable
-          style="width: 100%"
-          :props="filter.props || {}"
-          :options="filter.options"
-          collapse-tags
-          @visible-change="handleCascaderFilter($event, filter.field)"
-          @change="handleFilter($event, filter.field)"
-        ></el-cascader>
-      </template>
-    </vxe-grid>
+    </el-table>
     <el-pagination
       v-if="showPagination"
       :page-size="pagination.limit"
@@ -113,52 +66,43 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="getData.total || getData.count"
       @current-change="handlePageChange"
-      @size-change="handlePageSizeChange"
+      @size-change="handleSizeChange"
     ></el-pagination>
   </div>
 </template>
 <script>
-import { debounce } from 'lodash'
+import _ from 'lodash'
 import { polyfill } from '@/utils'
+
 export default {
-  name: 'XList',
-  components: {},
+  name: 'MarsList',
   props: {
     // 自定义列
     columns: { type: Array, default: () => [] },
     // 表格数据
     data: Object,
     // 页码
-    showPagination: { type: Boolean, default: () => true },
+    showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
-    mergeCells: { type: Array, default: () => [] },
-    // 编辑配置
-    editConfig: Object,
-    editRules: { type: Object, default: () => ({}) },
-    // 横向虚拟滚动配置
-    scrollX: Object,
-    // 纵向虚拟滚动配置
-    scrollY: Object,
-    // 复选框配置项
-    checkboxConfig: Object,
-    // tooltip 配置项
-    tooltipConfig: Object,
+    spanMethod: Function,
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 260 },
-    // 本地Storage名称（拖拽列时需要本地储存）
-    storageName: String
+    offsetHeight: { type: Number, default: 260 }
   },
   data() {
     return {
       defaultData: { list: [], total: 0, loading: false },
-      defaultScrollX: { enabled: false },
-      defaultScrollY: { enabled: false },
-      defaultEditConfig: { trigger: 'click', mode: 'cell', icon: 'el-icon-edit' },
-      defaultCheckboxConfig: { highlight: true, checkMethod: () => true },
-      defaultTooltipConfig: { showAll: true },
+      defaultTypeColumn: {
+        type: 'selection', //（勾选selection、展开expand、索引index）
+        visible: false,
+        width: 30,
+        fixed: false,
+        'reserve-selection': true,
+        selectable: Function.prototype
+      },
+      defaultOptsColumn: { label: '操作', type: 'opts', visible: true, width: 60, fixed: false },
       tableHeight: 300,
       filters: {}
     }
@@ -167,31 +111,39 @@ export default {
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
     },
-    getScrollX({ defaultScrollX, scrollX }) {
-      return polyfill(defaultScrollX, scrollX)
+    getMergeColumns({ columns, defaultTypeColumn, defaultOptsColumn }) {
+      let mergeColumns = []
+      columns.forEach((column) => {
+        let newColumn = column
+        newColumn.visible = true
+        if (['selection', 'expand', 'index'].includes(column?.type)) newColumn = polyfill(defaultTypeColumn, column)
+        if (column?.type === 'opts') newColumn = polyfill(defaultOptsColumn, column)
+        newColumn.prop = newColumn?.prop || column?.type
+        mergeColumns.push(newColumn)
+      })
+      return mergeColumns.filter((val) => val?.visible)
     },
-    getScrollY({ defaultScrollY, scrollY }) {
-      return polyfill(defaultScrollY, scrollY)
+    getCommand() {
+      return (column) => {
+        return column?.type === 'opts' ? this.handleCommand : null
+      }
     },
-    getEditConfig({ defaultEditConfig, editConfig }) {
-      return polyfill(defaultEditConfig, editConfig)
-    },
-    getCheckboxConfig({ defaultCheckboxConfig, checkboxConfig }) {
-      return polyfill(defaultCheckboxConfig, checkboxConfig)
-    },
-    getTooltipConfig({ defaultTooltipConfig, tooltipConfig }) {
-      return polyfill(defaultTooltipConfig, tooltipConfig)
-    },
-    isQICon() {
-      return (editRender, children) =>
-        (editRender && editRender.enabled) ||
-        (children && children.length && children[0].editRender && children[0].editRender.enabled)
+    getColumn() {
+      return (row, column) => {
+        if (!column.prop) return ''
+        const arr = (column.prop || '').split('.')
+        let item,
+          obj = row
+        while ((item = arr.shift()) && obj) {
+          obj = obj[item]
+        }
+        return obj
+      }
     }
   },
-  created() {},
   mounted() {
     this.onResize()
-    window.addEventListener('resize', debounce(this.onResize, 200))
+    window.addEventListener('resize', _.debounce(this.onResize, 200))
     this.$once('hook:beforeDestroy', () => {
       window.removeEventListener('resize', this.onResize)
     })
@@ -203,6 +155,15 @@ export default {
         const clientHeight = document.body.clientHeight - this.offsetHeight
         this.tableHeight = clientHeight < 300 ? 300 : clientHeight
       })
+    },
+    getFormatter(params) {
+      if (Array.isArray(params)) {
+        let [fn, ...rest] = params
+        return (row, column, cellValue) => fn({ row, column, cellValue }, ...rest)
+      } else if (params instanceof Function) {
+        return (row, column, cellValue) => params({ row, column, cellValue })
+      }
+      return null
     },
     // 操作项
     handleCommand(index, row, command) {
@@ -222,106 +183,43 @@ export default {
       this.$emit('search')
     },
     // 页数
-    handlePageSizeChange(limit) {
+    handleSizeChange(limit) {
       const pagination = {
         ...this.pagination,
-        page: 1,
-        limit
+        limit,
+        page: 1
       }
       this.$emit('update:pagination', pagination)
       this.$emit('search')
     },
-    // 编辑
-    handleEditClosed({ row, rowIndex, $rowIndex, column, columnIndex, $columnIndex }) {
-      let xGrid = this.$refs.xGrid
-      let field = column.property
-      // 判断单元格值是否被修改
-      if (xGrid.isUpdateByRow(row, field)) {
-        this.$emit('edit-closed', { row, rowIndex, $rowIndex, column, columnIndex, $columnIndex })
-      }
+    // 行的唯一key
+    getRowKey(row) {
+      return row._id
     },
     // 勾选
-    handleCheckboxChange({
-      records,
-      reserves,
-      indeterminates,
-      checked,
-      row,
-      rowIndex,
-      $rowIndex,
-      column,
-      columnIndex,
-      $columnIndex,
-      $event
-    }) {
-      this.$emit('update:selected-value', records)
-      this.$emit('checkbox-change', {
-        records,
-        reserves,
-        indeterminates,
-        checked,
-        row,
-        rowIndex,
-        $rowIndex,
-        column,
-        columnIndex,
-        $columnIndex,
-        $event
-      })
+    handleSelectionChange(selection) {
+      this.$emit('update:selected-value', selection)
+      this.$emit('selection-change', selection)
     },
     // 全选
-    handleCheckboxAll({ records, reserves, indeterminates, checked, $event }) {
-      this.$emit('update:selectValue', this.$refs.xGrid.getCheckboxRecords())
-      this.$emit('checkbox-all', { records, reserves, indeterminates, checked, $event })
+    handleSelectAll(selection) {
+      this.$emit('update:selected-value', selection)
+      this.$emit('select-all', selection)
     },
-    // 单元格点击事件
-    handleCellClick({ row, rowIndex, $rowIndex, column, columnIndex, $columnIndex, $event }) {
-      this.$emit('cell-click', { row, rowIndex, $rowIndex, column, columnIndex, $columnIndex, $event })
+    handleCellClick(row, column, cell, event) {
+      this.$emit('cell-click', row, column, cell, event)
     },
-    // 表头级联二次搜索
-    handleCascaderFilter($event, field) {
-      if (!$event) {
-        this.$nextTick(() => {
-          this.handleFilter(this.filters[field], field)
-        })
-      }
-    },
-    // 表头二次搜索
-    handleFilter($event, filed) {
-      const filters = { ...this.filters, [filed]: $event }
-      this.filters = Object.assign({}, this.filters, filters)
-      this.$emit('search', this.filters)
-    },
-    // 拖拽列
-    handleResizableChange({ column }) {
-      const xGrid = this.$refs.xGrid
-      if (xGrid) {
-        column.width = column.renderWidth
-        column.resizeWidth = 0 // 拖拽后要清理  这个字段优先级高于renderWidth
-        xGrid.refreshColumn()
-        localStorage.setItem(this.storageName, JSON.stringify(xGrid.getColumns()))
-      }
+    handleCurrentChange(currentRow, oldCurrentRow) {
+      this.$emit('current-change', currentRow, oldCurrentRow)
     }
   }
 }
 </script>
 <style lang="scss" scoped>
-.x-list {
-  ::v-deep {
-    .vxe-table .vxe-table--body {
-      font-size: 12px;
-    }
-    .el-button--mini {
-      padding: 2px 6px;
-      font-size: 12px;
-    }
-    .vxe-header--column .vxe-cell--edit-icon {
-      //color: $font-orange;
-    }
-  }
+.mars-list {
   .el-pagination {
     text-align: right;
-    margin: 8px;
+    margin-top: 5px;
   }
 }
 </style>

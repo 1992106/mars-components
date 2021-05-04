@@ -1,5 +1,5 @@
 <template>
-  <div class="search-bar">
+  <div class="mars-search-bar">
     <el-form
       ref="searchBar"
       :inline="true"
@@ -48,7 +48,7 @@
 
 <script>
 export default {
-  name: 'SearchBar',
+  name: 'MarsSearchBar',
   props: {
     fields: { type: Array, default: () => [] },
     showOnly: { type: Boolean, default: true },
@@ -78,7 +78,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.search-bar {
+.mars-search-bar {
   display: flex;
   & > .el-form {
     .el-form-item {

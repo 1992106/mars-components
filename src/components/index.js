@@ -1,3 +1,3 @@
-export { default as EList } from './list/eList.vue'
-export { default as XList } from './list/xList.vue'
-export { default as SearchBar } from './searchBar/index'
+export { default as MarsGrid } from './list/xGrid.vue'
+export { default as MarsList } from './list/xList.vue'
+export { default as MarsSearchBar } from './searchBar/index'

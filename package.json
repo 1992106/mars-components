@@ -1,7 +1,6 @@
 {
   "name": "mars-components",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
   "main": "dist/mars-components.ssr.js",
   "browser": "dist/mars-components.esm.js",
   "module": "dist/mars-components.esm.js",

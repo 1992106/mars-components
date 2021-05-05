@@ -8,6 +8,10 @@
       :height="tableHeight"
       :row-key="getRowKey"
       :span-method="spanMethod"
+      :row-class-name="rowClassName"
+      :cell-class-name="cellClassName"
+      :row-style="rowStyle"
+      :cellStyle="cellStyle"
       highlight-current-row
       empty-text="暂无数据"
       @selection-change="handleSelectionChange"
@@ -82,6 +86,14 @@ export default {
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
     spanMethod: Function,
+    // 给行附加 className
+    rowClassName: [String, Function],
+    // 给单元格附加 className
+    cellClassName: [String, Function],
+    // 给单元格附加样式
+    cellStyle: [Object, Function],
+    // 给行附加样式
+    rowStyle: [Object, Function],
     // 表格除外的高度
     offsetHeight: { type: Number, default: 260 }
   },

@@ -4,21 +4,20 @@
       <template v-for="field in fields">
         <el-form-item :label="field.label" :prop="field.prop" :key="field.prop">
           <template v-if="field.type === 'select'">
-            <el-select v-model="form[field.prop]" filterable>
-              <el-option
-                v-for="item in field.options || []"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-                :placeholder="field.placeholder || `请选择${field.label}`"
-              ></el-option>
+            <el-select v-model="form[field.prop]" filterable clearable :multiple="!!field.multiple" :placeholder="field.placeholder || `请选择${field.label}`">
+              <el-option v-for="item in field.options || []" :key="item.value" :label="item.label" :value="item.value"></el-option>
             </el-select>
           </template>
           <template v-else-if="field.type === 'autocomplete'">
-            <el-autocomplete v-model="form[field.prop]" :fetch-suggestions="field.fetchSuggestions" :placeholder="field.placeholder || `请输入${field.label}`"></el-autocomplete>
+            <el-autocomplete
+              v-model="form[field.prop]"
+              clearable
+              :fetch-suggestions="field.fetchSuggestions"
+              :placeholder="field.placeholder || `请输入${field.label}`"
+            ></el-autocomplete>
           </template>
           <template v-else>
-            <el-input v-model="form[field.prop]" :type="field.type || 'text'" :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
+            <el-input v-model="form[field.prop]" :type="field.type || 'text'" clearable :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
           </template>
         </el-form-item>
       </template>
@@ -60,6 +59,12 @@ export default {
   },
   methods: {
     onSubmit() {
+      this.fields
+        .filter((val) => val?.type === 'number')
+        .forEach((field) => {
+          let val = this.form[field.prop]
+          this.form[field.prop] = val ? +val : undefined
+        })
       this.$emit('search', { ...this.form })
     }
   }

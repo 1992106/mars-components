@@ -17,6 +17,10 @@
       :merge-cells="mergeCells"
       :edit-config="getEditConfig"
       :edit-rules="editRules"
+      :row-class-name="rowClassName"
+      :cell-class-name="cellClassName"
+      :row-style="rowStyle"
+      :cellStyle="cellStyle"
       :checkbox-config="getCheckboxConfig"
       :tooltip-config="getTooltipConfig"
       @edit-closed="handleEditClosed"
@@ -46,8 +50,8 @@
           clearable
           size="mini"
           :type="filter.type || 'text'"
-          @change="handleFilter($event, filter.field)"
-          @clear="handleClear(filter.field)"
+          @change="handleFilter($event, filter)"
+          @clear="handleClear(filter)"
         ></el-input>
       </template>
       <template
@@ -64,9 +68,9 @@
           size="mini"
           :multiple="filters.multiple || true"
           placeholder="请选择"
-          @visible-change="handleVisibleChange($event, filter.field)"
-          @remove-tag="handleRemoveTag($event, filter.field)"
-          @clear="handleClear(filter.field)"
+          @visible-change="handleVisibleChange($event, filter)"
+          @remove-tag="handleRemoveTag($event, filter)"
+          @clear="handleClear(filter)"
         >
           <el-option v-for="item in filter.options" :key="item.value" :value="item.value" :label="item.label"></el-option>
         </el-select>
@@ -88,7 +92,7 @@
           unlink-panels
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          @change="handleFilter($event, filter.field)"
+          @change="handleFilter($event, filter)"
         ></el-date-picker>
       </template>
       <template
@@ -107,9 +111,9 @@
           :props="filter.props || {}"
           :options="filter.options"
           collapse-tags
-          @visible-change="handleVisibleChange($event, filter.field)"
-          @remove-tag="handleRemoveTag($event, filter.field)"
-          @change="handleCascaderClear($event, filter.field)"
+          @visible-change="handleVisibleChange($event, filter)"
+          @remove-tag="handleRemoveTag($event, filter)"
+          @change="handleCascaderClear($event, filter)"
         ></el-cascader>
       </template>
     </vxe-grid>
@@ -137,7 +141,7 @@ export default {
     // 表格数据
     data: Object,
     // 页码
-    showPagination: { type: Boolean, default: () => true },
+    showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
@@ -154,6 +158,14 @@ export default {
     checkboxConfig: Object,
     // tooltip 配置项
     tooltipConfig: Object,
+    // 给行附加 className
+    rowClassName: [String, Function],
+    // 给单元格附加 className
+    cellClassName: [String, Function],
+    // 给单元格附加样式
+    cellStyle: [Object, Function],
+    // 给行附加样式
+    rowStyle: [Object, Function],
     // 表格除外的高度
     offsetHeight: { type: Number, default: 260 },
     // 本地Storage名称（拖拽列时需要本地储存）
@@ -303,38 +315,40 @@ export default {
       this.$emit('cell-click', { row, rowIndex, $rowIndex, column, columnIndex, $columnIndex, $event })
     },
     // 表头二次搜索-点击清空按钮时触发 (TODO: 级联没有清空事件，所以用change事件模拟)
-    handleCascaderClear($event, field) {
+    handleCascaderClear($event, item) {
       if (Array.isArray($event) && $event.length === 0) {
         this.$nextTick(() => {
-          this.handleFilter(this.filters[field], field)
+          this.handleFilter(this.filters[item.field], item)
         })
       }
     },
     // 表头二次搜索-点击清空按钮时触发
-    handleClear(field) {
+    handleClear(item) {
       this.$nextTick(() => {
-        this.handleFilter(this.filters[field], field)
+        this.handleFilter(this.filters[item.field], item)
       })
     },
     // 表头二次搜索-在多选模式下，移除Tag时触发
-    handleRemoveTag($event, field) {
+    handleRemoveTag($event, item) {
       if ($event) {
         this.$nextTick(() => {
-          this.handleFilter(this.filters[field], field)
+          this.handleFilter(this.filters[item.field], item)
         })
       }
     },
     // 表头二次搜索-下拉框出现/隐藏时触发
-    handleVisibleChange($event, field) {
+    handleVisibleChange($event, item) {
       if (!$event) {
         this.$nextTick(() => {
-          this.handleFilter(this.filters[field], field)
+          this.handleFilter(this.filters[item.field], item)
         })
       }
     },
     // 表头二次搜索
-    handleFilter($event, field) {
-      const filters = { ...this.filters, [field]: $event }
+    handleFilter($event, item) {
+      let value = $event
+      if (item.type === 'number') value = $event ? +$event : undefined
+      const filters = { ...this.filters, [item.field]: value }
       this.filters = Object.assign({}, this.filters, filters)
       this.$emit('filter', this.filters)
     },

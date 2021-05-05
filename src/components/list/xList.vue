@@ -6,7 +6,7 @@
       border
       :data="getData.list"
       :height="tableHeight"
-      :row-key="getRowKey"
+      :row-key="rowKey"
       :span-method="spanMethod"
       :row-class-name="rowClassName"
       :cell-class-name="cellClassName"
@@ -59,7 +59,7 @@
     <el-pagination
       v-if="showPagination"
       :page-size="pagination.limit"
-      :page-sizes="[20, 30, 50, 100]"
+      :page-sizes="getPageSizes"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
       :total="getData.total || getData.count"
@@ -82,6 +82,9 @@ export default {
     // 页码
     showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
+    pageSizes: Array,
+    // 行数据的Key
+    rowKey: [String, Function],
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
@@ -95,11 +98,12 @@ export default {
     // 给行附加样式
     rowStyle: [Object, Function],
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 260 }
+    offsetHeight: { type: Number, default: 265 }
   },
   data() {
     return {
       defaultData: { list: [], total: 0, loading: false },
+      defaultPageSizes: [20, 30, 50, 100],
       defaultTypeColumn: {
         type: 'selection', //（勾选selection、展开expand、索引index）
         visible: false,
@@ -116,6 +120,9 @@ export default {
   computed: {
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
+    },
+    getPageSizes({ defaultPageSizes, pageSizes }) {
+      return polyfill(defaultPageSizes, pageSizes)
     },
     getMergeColumns({ columns, defaultTypeColumn, defaultOptsColumn }) {
       let mergeColumns = []
@@ -197,10 +204,6 @@ export default {
       }
       this.$emit('update:pagination', pagination)
       this.$emit('search')
-    },
-    // 行的唯一key
-    getRowKey(row) {
-      return row._id
     },
     // 勾选
     handleSelectionChange(selection) {

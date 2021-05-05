@@ -120,7 +120,7 @@
     <el-pagination
       v-if="showPagination"
       :page-size="pagination.limit"
-      :page-sizes="[20, 30, 50, 100]"
+      :page-sizes="getPageSizes"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
       :total="getData.total || getData.count"
@@ -143,6 +143,7 @@ export default {
     // 页码
     showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
+    pageSizes: Array,
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
@@ -167,13 +168,14 @@ export default {
     // 给行附加样式
     rowStyle: [Object, Function],
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 260 },
+    offsetHeight: { type: Number, default: 265 },
     // 本地Storage名称（拖拽列时需要本地储存）
     storageName: String
   },
   data() {
     return {
       defaultData: { list: [], total: 0, loading: false },
+      defaultPageSizes: [20, 30, 50, 100],
       defaultScrollX: { enabled: false },
       defaultScrollY: { enabled: false },
       defaultEditConfig: { trigger: 'click', mode: 'cell', icon: 'el-icon-edit' },
@@ -217,6 +219,9 @@ export default {
   computed: {
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
+    },
+    getPageSizes({ defaultPageSizes, pageSizes }) {
+      return polyfill(defaultPageSizes, pageSizes)
     },
     getScrollX({ defaultScrollX, scrollX }) {
       return polyfill(defaultScrollX, scrollX)

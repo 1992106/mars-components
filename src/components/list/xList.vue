@@ -59,7 +59,7 @@
     <el-pagination
       v-if="showPagination"
       :page-size="pagination.limit"
-      :page-sizes="getPageSizes"
+      :page-sizes="pageSizes"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
       :total="getData.total || getData.count"
@@ -82,7 +82,7 @@ export default {
     // 页码
     showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
-    pageSizes: Array,
+    pageSizes: { type: Array, default: () => [20, 30, 50, 100] },
     // 行数据的Key
     rowKey: [String, Function],
     // 勾选项
@@ -103,7 +103,6 @@ export default {
   data() {
     return {
       defaultData: { list: [], total: 0, loading: false },
-      defaultPageSizes: [20, 30, 50, 100],
       defaultTypeColumn: {
         type: 'selection', //（勾选selection、展开expand、索引index）
         visible: false,
@@ -120,9 +119,6 @@ export default {
   computed: {
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
-    },
-    getPageSizes({ defaultPageSizes, pageSizes }) {
-      return polyfill(defaultPageSizes, pageSizes)
     },
     getMergeColumns({ columns, defaultTypeColumn, defaultOptsColumn }) {
       let mergeColumns = []

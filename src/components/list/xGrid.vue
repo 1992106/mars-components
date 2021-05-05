@@ -120,7 +120,7 @@
     <el-pagination
       v-if="showPagination"
       :page-size="pagination.limit"
-      :page-sizes="getPageSizes"
+      :page-sizes="pageSizes"
       :current-page.sync="pagination.page"
       layout="total, sizes, prev, pager, next, jumper"
       :total="getData.total || getData.count"
@@ -143,7 +143,7 @@ export default {
     // 页码
     showPagination: { type: Boolean, default: true },
     pagination: { type: Object, default: () => ({ limit: 20, page: 1 }) },
-    pageSizes: Array,
+    pageSizes: { type: Array, default: () => [20, 30, 50, 100] },
     // 勾选项
     selectedValue: { type: Array, default: () => [] },
     // 合并单元格
@@ -175,7 +175,6 @@ export default {
   data() {
     return {
       defaultData: { list: [], total: 0, loading: false },
-      defaultPageSizes: [20, 30, 50, 100],
       defaultScrollX: { enabled: false },
       defaultScrollY: { enabled: false },
       defaultEditConfig: { trigger: 'click', mode: 'cell', icon: 'el-icon-edit' },
@@ -219,9 +218,6 @@ export default {
   computed: {
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
-    },
-    getPageSizes({ defaultPageSizes, pageSizes }) {
-      return polyfill(defaultPageSizes, pageSizes)
     },
     getScrollX({ defaultScrollX, scrollX }) {
       return polyfill(defaultScrollX, scrollX)

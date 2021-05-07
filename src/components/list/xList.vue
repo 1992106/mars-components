@@ -20,30 +20,41 @@
       @current-change="handleCurrentChange"
     >
       <template v-for="(column, index) in getMergeColumns">
-        <el-table-column :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
-          <!--表头-->
-          <template v-if="column.header" slot="header">
-            <slot :name="getHeaderName(column)"></slot>
-          </template>
-          <!--内容-->
-          <template v-if="!column.formatter" slot-scope="scope">
-            <slot :name="column.prop" v-bind="scope" :command="getCommand(column)">
-              <!--<template v-if="column.type === 'image'">
+        <!--TODO: formatter与slot-->
+        <template v-if="column.formatter">
+          <el-table-column :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
+            <!--表头-->
+            <template v-if="column.header" slot="header">
+              <slot :name="getHeaderName(column)"></slot>
+            </template>
+          </el-table-column>
+        </template>
+        <template v-else>
+          <el-table-column :key="column + index" v-bind="column" show-overflow-tooltip>
+            <!--表头-->
+            <template v-if="column.header" slot="header">
+              <slot :name="getHeaderName(column)"></slot>
+            </template>
+            <!--内容-->
+            <template slot-scope="scope">
+              <slot :name="column.prop" v-bind="scope" :command="getCommand(column)">
+                <!--<template v-if="column.type === 'image'">
                   <el-image
                     lazy
                     :src="getColumn(scope.row, column)"
                     :preview-src-list="[getColumn(scope.row, column)]"
                   ></el-image>
                 </template>-->
-              <template v-if="column.type === 'date'">
-                {{ getColumn(scope.row, column) | formatDate('YYYY-MM-DD') }}
-              </template>
-              <template v-else>
-                {{ getColumn(scope.row, column) | isNull }}
-              </template>
-            </slot>
-          </template>
-        </el-table-column>
+                <template v-if="column.type === 'date'">
+                  {{ getColumn(scope.row, column) | formatDate('YYYY-MM-DD') }}
+                </template>
+                <template v-else>
+                  {{ getColumn(scope.row, column) | isNull }}
+                </template>
+              </slot>
+            </template>
+          </el-table-column>
+        </template>
       </template>
     </el-table>
     <el-pagination
@@ -168,7 +179,6 @@ export default {
       } else if (params instanceof Function) {
         return (row, column, cellValue) => params({ row, column, cellValue })
       }
-      return null
     },
     // 操作项
     handleCommand(index, row, command) {

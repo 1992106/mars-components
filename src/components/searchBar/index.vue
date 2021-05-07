@@ -17,7 +17,7 @@
             ></el-autocomplete>
           </template>
           <template v-else>
-            <el-input v-model="form[field.prop]" :type="field.type || 'text'" clearable :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
+            <el-input v-model="form[field.prop]" :type="field.type || 'text'" :min="field.min" clearable :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
           </template>
         </el-form-item>
       </template>
@@ -88,6 +88,9 @@ export default {
   .extra-btn {
     flex: 1;
     display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 10px;
   }
 }
 </style>

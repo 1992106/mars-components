@@ -22,18 +22,14 @@
       <template v-for="(column, index) in getMergeColumns">
         <el-table-column v-if="column.formatter" :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
           <!--表头-->
-          <template v-if="column.header">
-            <template slot="header" slot-scope="scope">
-              <slot :name="column.header" :scope="{ ...scope }"></slot>
-            </template>
+          <template slot="header" slot-scope="scope">
+            <slot :name="'header-' + column.prop" :scope="{ ...scope }"></slot>
           </template>
         </el-table-column>
         <el-table-column v-else :key="column + index" v-bind="column" show-overflow-tooltip>
           <!--表头-->
-          <template v-if="column.header">
-            <template slot="header" slot-scope="scope">
-              <slot :name="column.header" :scope="{ ...scope }"></slot>
-            </template>
+          <template slot="header" slot-scope="scope">
+            <slot :name="'header-' + column.prop" :scope="{ ...scope }"></slot>
           </template>
           <!--内容-->
           <template slot-scope="scope">

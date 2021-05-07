@@ -20,19 +20,13 @@
       @current-change="handleCurrentChange"
     >
       <template v-for="(column, index) in getMergeColumns">
-        <el-table-column v-if="column.formatter" :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
+        <el-table-column :key="column + index" v-bind="column" :formatter="getFormatter(column.formatter)" show-overflow-tooltip>
           <!--表头-->
-          <template slot="header" slot-scope="scope">
-            <slot :name="'header-' + column.prop" :scope="{ ...scope }"></slot>
-          </template>
-        </el-table-column>
-        <el-table-column v-else :key="column + index" v-bind="column" show-overflow-tooltip>
-          <!--表头-->
-          <template slot="header" slot-scope="scope">
-            <slot :name="'header-' + column.prop" :scope="{ ...scope }"></slot>
+          <template v-if="column.header" slot="header">
+            <slot :name="getHeaderName(column)"></slot>
           </template>
           <!--内容-->
-          <template slot-scope="scope">
+          <template v-if="!column.formatter" slot-scope="scope">
             <slot :name="column.prop" v-bind="scope" :command="getCommand(column)">
               <!--<template v-if="column.type === 'image'">
                   <el-image
@@ -127,6 +121,12 @@ export default {
         mergeColumns.push(newColumn)
       })
       return mergeColumns.filter((val) => val?.visible)
+    },
+    getHeaderName() {
+      return (column) => {
+        if (typeof column?.header === 'boolean') return 'header-' + column.prop
+        return column?.header
+      }
     },
     getCommand() {
       return (column) => {

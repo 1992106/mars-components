@@ -35,12 +35,14 @@
 </template>
 
 <script>
+import _ from 'lodash'
 export default {
   name: 'MarsSearchBar',
   props: {
     fields: { type: Array, default: () => [] },
     showOnly: { type: Boolean, default: true },
-    onlyOnStage: { type: Boolean, default: false }
+    onlyOnStage: { type: Boolean, default: false },
+    delay: { type: Number, default: 500 }
   },
   data() {
     return {
@@ -49,13 +51,36 @@ export default {
       }
     }
   },
+  computed: {
+    defaultValueFields() {
+      return this.fields.filter((field) => field?.defaultValue != null)
+    }
+  },
   watch: {
+    defaultValueFields: {
+      handler(val) {
+        if (val.length) {
+          val.forEach((field) => {
+            this.form[field.prop] = field?.defaultValue
+          })
+          // TODO: 延迟在created生命周期之后执行
+          this.$nextTick(() => {
+            this.onSubmit()
+          })
+        }
+      },
+      immediate: true,
+      deep: true
+    },
     onlyOnStage: {
       handler(val) {
         this.form.onlyOnStage = val
       },
       immediate: true
     }
+  },
+  created() {
+    this.onSubmit = _.debounce(this.onSubmit, this.delay)
   },
   methods: {
     onSubmit() {

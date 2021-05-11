@@ -99,7 +99,7 @@ export default {
     // 给行附加样式
     rowStyle: [Object, Function],
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 265 }
+    offsetHeight: { type: Number, default: 268 }
   },
   data() {
     return {

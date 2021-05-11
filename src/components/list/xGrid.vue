@@ -168,7 +168,7 @@ export default {
     // 给行附加样式
     rowStyle: [Object, Function],
     // 表格除外的高度
-    offsetHeight: { type: Number, default: 265 },
+    offsetHeight: { type: Number, default: 268 },
     // 本地Storage名称（拖拽列时需要本地储存）
     storageName: String
   },
@@ -177,7 +177,7 @@ export default {
       defaultData: { list: [], total: 0, loading: false },
       defaultScrollX: { enabled: false },
       defaultScrollY: { enabled: false },
-      defaultEditConfig: { trigger: 'click', mode: 'cell', icon: 'el-icon-edit' },
+      defaultEditConfig: { trigger: 'click', mode: 'cell', showStatus: true, icon: 'el-icon-edit' },
       defaultCheckboxConfig: { highlight: true, checkMethod: () => true },
       defaultTooltipConfig: { showAll: true },
       tableHeight: 300,
@@ -286,7 +286,7 @@ export default {
       let field = column.property
       // 判断单元格值是否被修改
       if (xGrid.isUpdateByRow(row, field)) {
-        this.$emit('edit-closed', { row, rowIndex, $rowIndex, column, columnIndex, $columnIndex })
+        this.$emit('edit-closed', { row, field, rowIndex, $rowIndex, column, columnIndex, $columnIndex })
       }
     },
     // 勾选

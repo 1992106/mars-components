@@ -1,43 +1,58 @@
 <template>
   <div class="mars-search-bar">
     <template v-if="fields && fields.length">
-      <el-form ref="searchBar" :inline="true" :model="form" size="mini" @submit.native.prevent @keyup.enter.native="onSubmit">
+      <el-form ref="searchBar" :inline="true" :model="form" size="mini" @submit.native.prevent @keyup.enter.native="handleSubmit">
         <template v-for="field in fields">
           <el-form-item :label="field.label" :prop="field.prop" :key="field.prop">
             <template v-if="field.type === 'select'">
-              <el-select v-model="form[field.prop]" filterable clearable :multiple="!!field.multiple" :placeholder="field.placeholder || `请选择${field.label}`">
+              <el-select
+                v-model.trim="form[field.prop]"
+                filterable
+                clearable
+                :multiple="!!field.multiple"
+                :placeholder="field.placeholder || `请选择${field.label}`"
+                @change="$forceUpdate()"
+              >
                 <el-option v-for="item in field.options || []" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </template>
             <template v-else-if="field.type === 'cascader'">
               <el-cascader
-                v-model="form[field.prop]"
+                v-model.trim="form[field.prop]"
                 :options="field.options || []"
                 filterable
                 clearable
                 collapse-tags
                 :props="field.props"
                 :placeholder="field.placeholder || `请选择${field.label}`"
+                @change="$forceUpdate()"
               ></el-cascader>
             </template>
             <template v-else-if="field.type === 'autocomplete'">
               <el-autocomplete
-                v-model="form[field.prop]"
+                v-model.trim="form[field.prop]"
                 clearable
                 :fetch-suggestions="field.fetchSuggestions"
                 :placeholder="field.placeholder || `请输入${field.label}`"
               ></el-autocomplete>
             </template>
             <template v-else>
-              <el-input v-model="form[field.prop]" :type="field.type || 'text'" :min="field.min" clearable :placeholder="field.placeholder || `请输入${field.label}`"></el-input>
+              <el-input
+                v-model.trim="form[field.prop]"
+                :type="field.type || 'text'"
+                :min="field.min"
+                clearable
+                :placeholder="field.placeholder || `请输入${field.label}`"
+              ></el-input>
             </template>
           </el-form-item>
         </template>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">搜索</el-button>
+          <el-button type="primary" @click="handleSubmit">搜索</el-button>
+          <el-button type="default" @click="handleRest">重置</el-button>
         </el-form-item>
         <el-form-item v-if="showOnly" label="只看我负责的" prop="onlyOnStage">
-          <el-switch v-model="form.onlyOnStage" @change="onSubmit"></el-switch>
+          <el-switch v-model="form.onlyOnStage" @change="handleSubmit"></el-switch>
         </el-form-item>
       </el-form>
     </template>
@@ -61,30 +76,11 @@ export default {
     return {
       form: {
         onlyOnStage: false
-      }
-    }
-  },
-  computed: {
-    defaultValueFields() {
-      return this.fields.filter((field) => field?.defaultValue != null)
+      },
+      restForm: {}
     }
   },
   watch: {
-    defaultValueFields: {
-      handler(val) {
-        if (val.length) {
-          val.forEach((field) => {
-            this.form[field.prop] = field?.defaultValue
-          })
-          // TODO: 延迟在created生命周期之后执行
-          this.$nextTick(() => {
-            this.onSubmit()
-          })
-        }
-      },
-      immediate: true,
-      deep: true
-    },
     onlyOnStage: {
       handler(val) {
         this.form.onlyOnStage = val
@@ -93,10 +89,24 @@ export default {
     }
   },
   created() {
-    this.onSubmit = _.debounce(this.onSubmit, this.delay)
+    this.handleSubmit = _.debounce(this.handleSubmit, this.delay)
+    this.initSubmit()
+  },
+  mounted() {
+    this.restForm = _.cloneDeep(this.form)
   },
   methods: {
-    onSubmit() {
+    initSubmit() {
+      let defaultValueFields = this.fields.filter((field) => field?.defaultValue != null)
+      if (defaultValueFields.length) {
+        defaultValueFields.forEach((field) => {
+          this.form[field.prop] = field.defaultValue
+        })
+        this.handleSubmit()
+      }
+      console.log(this.form, defaultValueFields, 333)
+    },
+    handleSubmit() {
       this.fields
         .filter((val) => val?.type === 'number')
         .forEach((field) => {
@@ -104,6 +114,9 @@ export default {
           this.form[field.prop] = val ? +val : undefined
         })
       this.$emit('search', { ...this.form })
+    },
+    handleRest() {
+      this.form = _.cloneDeep(this.restForm)
     }
   }
 }

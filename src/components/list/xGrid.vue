@@ -308,7 +308,7 @@ export default {
     },
     // 全选
     handleCheckboxAll({ records, reserves, indeterminates, checked, $event }) {
-      this.$emit('update:selectValue', this.$refs.xGrid.getCheckboxRecords())
+      this.$emit('update:selected-value', this.$refs.xGrid.getCheckboxRecords())
       this.$emit('checkbox-all', { records, reserves, indeterminates, checked, $event })
     },
     // 单元格点击事件

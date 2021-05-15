@@ -80,32 +80,40 @@ export default {
       restForm: {}
     }
   },
+  computed: {
+    defaultValueFields() {
+      return this.fields.filter((field) => field?.defaultValue != null)
+    }
+  },
   watch: {
     onlyOnStage: {
       handler(val) {
         this.form.onlyOnStage = val
       },
       immediate: true
+    },
+    fields: {
+      handler(val) {
+        let defaultValueFields = val.filter((field) => field?.defaultValue != null)
+        if (defaultValueFields.length) {
+          defaultValueFields.forEach((field) => {
+            this.form[field.prop] = field.defaultValue
+          })
+          // TODO: 延迟到created之后执行
+          this.$nextTick(() => {
+            this.handleSubmit()
+          })
+        }
+        this.restForm = _.cloneDeep(this.form)
+      },
+      immediate: true,
+      deep: true
     }
   },
   created() {
     this.handleSubmit = _.debounce(this.handleSubmit, this.delay)
-    this.initSubmit()
-  },
-  mounted() {
-    this.restForm = _.cloneDeep(this.form)
   },
   methods: {
-    initSubmit() {
-      let defaultValueFields = this.fields.filter((field) => field?.defaultValue != null)
-      if (defaultValueFields.length) {
-        defaultValueFields.forEach((field) => {
-          this.form[field.prop] = field.defaultValue
-        })
-        this.handleSubmit()
-      }
-      console.log(this.form, defaultValueFields, 333)
-    },
     handleSubmit() {
       this.fields
         .filter((val) => val?.type === 'number')

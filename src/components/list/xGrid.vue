@@ -66,7 +66,7 @@
           filterable
           clearable
           size="mini"
-          :multiple="filter.multiple || true"
+          :multiple="!!filter.multiple"
           placeholder="请选择"
           @visible-change="handleVisibleChange($event, filter)"
           @remove-tag="handleRemoveTag($event, filter)"

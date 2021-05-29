@@ -1,6 +1,6 @@
 {
   "name": "mars-components",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "main": "dist/mars-components.cjs.js",
   "browser": "dist/mars-components.esm.js",
   "module": "dist/mars-components.esm.js",

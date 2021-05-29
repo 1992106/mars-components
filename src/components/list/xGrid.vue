@@ -34,7 +34,7 @@
       </template>
 
       <!--插槽-->
-      <template v-for="slot of getSlots" #[slot]="scope">
+      <template v-for="slot of slotNames" #[slot]="scope">
         <slot :name="slot" v-bind="scope" :key="slot"></slot>
       </template>
 
@@ -217,15 +217,11 @@ export default {
             }
           }
         ]
-      }
+      },
+      slotNames: []
     }
   },
   computed: {
-    getSlots({ columns }) {
-      return columns
-        .filter((col) => col.slots)
-        .flatMap((col) => ['default', 'edit', 'header', 'footer'].map((val) => col.slots[val]).filter((val) => Boolean(val) && val !== 'opts'))
-    },
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
     },
@@ -248,6 +244,9 @@ export default {
       return (editRender, children) => (editRender && editRender.enabled) || (children && children.length && children[0].editRender && children[0].editRender.enabled)
     }
   },
+  created() {
+    this.slotNames = this.getSlots()
+  },
   mounted() {
     this.onResize()
     window.addEventListener('resize', _.debounce(this.onResize, 200))
@@ -256,6 +255,15 @@ export default {
     })
   },
   methods: {
+    getSlots() {
+      return this.columns
+        .filter((col) => col.slots)
+        .flatMap((col) =>
+          ['default', 'edit', 'header', 'footer', 'title', 'checkbox', 'radio', 'content', 'filter']
+            .map((val) => col.slots[val])
+            .filter((val) => typeof val === 'string' && Boolean(val) && val !== 'opts')
+        )
+    },
     // 监听视窗大小改变
     onResize() {
       this.$nextTick(() => {

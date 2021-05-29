@@ -33,6 +33,11 @@
         <slot name="opts" v-bind="scope" :command="handleCommand"></slot>
       </template>
 
+      <!--插槽-->
+      <template v-for="slot of getSlots" #[slot]="scope">
+        <slot :name="slot" v-bind="scope" :key="slot"></slot>
+      </template>
+
       <!--二次搜索-->
       <template #QIcon="{ column: { title, editRender, children } }">
         <i v-if="isQICon(editRender, children)" class="vxe-cell--edit-icon el-icon-edit"></i>
@@ -216,6 +221,11 @@ export default {
     }
   },
   computed: {
+    getSlots({ columns }) {
+      return columns
+        .filter((col) => col.slots)
+        .flatMap((col) => ['default', 'edit', 'header', 'footer'].map((val) => col.slots[val]).filter((val) => Boolean(val) && val !== 'opts'))
+    },
     getData({ defaultData, data }) {
       return polyfill(defaultData, data)
     },

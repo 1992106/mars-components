@@ -4,7 +4,8 @@ import Vue from 'vue'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
-import '../styles/variables.scss'
+// TODO: 没有配置sass-loader
+// import '../styles/variables.scss'
 
 // vxe-table
 import 'xe-utils'

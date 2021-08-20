@@ -255,8 +255,16 @@ export default {
     })
   },
   methods: {
+    generateSlots(columns, slots = []) {
+      columns.forEach((column) => {
+        slots.push(column)
+        column.children && this.generateSlots(column.children, slots)
+      })
+      return slots
+    },
     getSlots() {
-      return this.columns
+      const columns = this.generateSlots(this.columns)
+      return (columns || [])
         .filter((col) => col.slots)
         .flatMap((col) =>
           ['default', 'edit', 'header', 'footer', 'title', 'checkbox', 'radio', 'content', 'filter']
